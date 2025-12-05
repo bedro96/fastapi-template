@@ -35,17 +35,20 @@ def setup_database():
     Base.metadata.drop_all(bind=engine)
 
 
-client = TestClient(app)
+@pytest.fixture
+def client():
+    """Create test client"""
+    return TestClient(app)
 
 
-def test_health_check():
+def test_health_check(client):
     """Test health check endpoint"""
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "healthy"
 
 
-def test_create_order():
+def test_create_order(client):
     """Test creating a new order"""
     response = client.post(
         "/api/orders/",
@@ -59,7 +62,7 @@ def test_create_order():
     assert "id" in data
 
 
-def test_read_orders():
+def test_read_orders(client):
     """Test reading all orders"""
     # Create test order
     client.post(
@@ -75,7 +78,7 @@ def test_read_orders():
     assert data[0]["name"] == "Test Order"
 
 
-def test_read_order():
+def test_read_order(client):
     """Test reading a specific order"""
     # Create test order
     create_response = client.post(
@@ -92,7 +95,7 @@ def test_read_order():
     assert data["id"] == order_id
 
 
-def test_update_order():
+def test_update_order(client):
     """Test updating an order"""
     # Create test order
     create_response = client.post(
@@ -112,7 +115,7 @@ def test_update_order():
     assert data["quantity"] == 10
 
 
-def test_delete_order():
+def test_delete_order(client):
     """Test deleting an order"""
     # Create test order
     create_response = client.post(
@@ -130,7 +133,7 @@ def test_delete_order():
     assert response.status_code == 404
 
 
-def test_order_not_found():
+def test_order_not_found(client):
     """Test accessing non-existent order"""
     response = client.get("/api/orders/99999")
     assert response.status_code == 404
